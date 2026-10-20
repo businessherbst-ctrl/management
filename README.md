@@ -20,5 +20,7 @@ Weg nur bei: Browserdaten/Websitedaten löschen, App deinstallieren, iOS-Safari 
 Darum: `navigator.storage.persist()` wird angefragt + Backup-Funktion in den Einstellungen.
 
 ## Offen / Ideen
-- Hosting (GitHub Pages), damit es aufs Handy installierbar ist
+Live: https://businessherbst-ctrl.github.io/management/ (Updates = push auf main)
+
+## Weitere Ideen
 - Erinnerungen, weitere Module (Ziele, Finanzen, Journal …), Sync zwischen Geräten
