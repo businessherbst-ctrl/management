@@ -1,7 +1,7 @@
 # Management
 
 Persönliche Handy-App (PWA, wie wordtime): eine index.html, keine Build-Schritte.
-Erstes Modul: Habit-Tracker. Weitere Module kommen als eigene Ansicht + Tab in der Unten-Navigation dazu.
+Erstes Modul: Habit-Tracker. UI auf Englisch (seit 20.10.2026). Weitere Module kommen als eigene Ansicht + Tab in der Unten-Navigation dazu.
 
 ## Starten
     cd ~/dev/management && python -m http.server 8081

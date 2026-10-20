@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -96,6 +96,7 @@ label.l { display: block; font-size: 13px; color: var(--dim); margin: 14px 0 6px
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { padding: 9px 13px; border-radius: 999px; background: var(--card2); border: 1px solid var(--line); font-size: 14px; }
 .chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.daychips { flex-wrap: nowrap; gap: 4px; } .daychips .chip { flex: 1; padding: 9px 0; text-align: center; font-size: 13px; }
 .emojis .chip { font-size: 20px; padding: 6px 9px; }
 .toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--card2);
   padding: 10px 16px; border-radius: 12px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20; }
@@ -107,8 +108,8 @@ label.l { display: block; font-size: 13px; color: var(--dim); margin: 14px 0 6px
   <!-- Modul: Habits -->
   <section class="view on" id="v-habits">
     <header>
-      <div><h1 id="h-title">Heute</h1><div class="sub" id="h-date"></div></div>
-      <button class="iconbtn" id="h-add" aria-label="Habit hinzufügen">＋</button>
+      <div><h1 id="h-title">Today</h1><div class="sub" id="h-date"></div></div>
+      <button class="iconbtn" id="h-add" aria-label="Add habit">＋</button>
     </header>
     <div class="days" id="h-days"></div>
     <div class="progress" id="h-progress"></div>
@@ -117,22 +118,22 @@ label.l { display: block; font-size: 13px; color: var(--dim); margin: 14px 0 6px
 
   <!-- Statistik -->
   <section class="view" id="v-stats">
-    <header><div><h1>Verlauf</h1><div class="sub">Letzte 30 Tage</div></div></header>
+    <header><div><h1>History</h1><div class="sub">Last 30 days</div></div></header>
     <div id="s-list"></div>
   </section>
 
   <!-- Einstellungen -->
   <section class="view" id="v-settings">
-    <header><div><h1>Einstellungen</h1></div></header>
+    <header><div><h1>Settings</h1></div></header>
     <div class="card">
-      <b>Datensicherung</b>
+      <b>Backup</b>
       <div class="sub" id="st-storage" style="margin-top:4px"></div>
-      <button class="btn ghost" id="st-export">Backup speichern</button>
-      <button class="btn ghost" id="st-import">Backup laden</button>
+      <button class="btn ghost" id="st-export">Save backup</button>
+      <button class="btn ghost" id="st-import">Restore backup</button>
       <input type="file" id="st-file" accept="application/json,.json" hidden>
     </div>
     <div class="card">
-      <b>Habits verwalten</b>
+      <b>Manage habits</b>
       <div id="st-habits"></div>
     </div>
   </section>
@@ -140,8 +141,8 @@ label.l { display: block; font-size: 13px; color: var(--dim); margin: 14px 0 6px
 
 <nav id="nav">
   <button class="on" data-v="habits"><span>✓</span>Habits</button>
-  <button data-v="stats"><span>▦</span>Verlauf</button>
-  <button data-v="settings"><span>⚙</span>Einstellungen</button>
+  <button data-v="stats"><span>▦</span>History</button>
+  <button data-v="settings"><span>⚙</span>Settings</button>
 </nav>
 
 <div class="sheet-bg" id="sheet-bg"></div>
@@ -151,8 +152,8 @@ label.l { display: block; font-size: 13px; color: var(--dim); margin: 14px 0 6px
 <script>
 // ---------- Daten ----------
 const KEY = 'management-v1';
-const SLOTS = { morning: 'Morgens', day: 'Tagsüber', evening: 'Abends' };
-const WD = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const SLOTS = { morning: 'Morning', day: 'Daytime', evening: 'Evening' };
+const WD = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const EMOJIS = ['💪','📵','💧','🏃','🧘','📖','🛏️','🥗','🚿','☀️','✍️','🦷','💊','🚶','🧠','🎯','💰','🙏'];
 
 function blank() { return { v: 1, habits: [], log: {} }; }
@@ -161,7 +162,7 @@ function load() {
   return blank();
 }
 let S = load();
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Speichern fehlgeschlagen'); } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Could not save'); } }
 
 // ---------- Datum ----------
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -204,8 +205,8 @@ function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add(
 // ---------- Ansicht: Habits ----------
 function renderHabits() {
   const t = today(), isToday = iso(sel) === iso(t);
-  $('h-title').textContent = isToday ? 'Heute' : iso(sel) === iso(addDays(t, -1)) ? 'Gestern' : WD[wdIdx(sel)] + ', ' + sel.getDate() + '.';
-  $('h-date').textContent = sel.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+  $('h-title').textContent = isToday ? 'Today' : iso(sel) === iso(addDays(t, -1)) ? 'Yesterday' : WD[wdIdx(sel)] + ' ' + sel.getDate();
+  $('h-date').textContent = sel.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
   // Woche, in der der gewählte Tag liegt
   const mon = addDays(sel, -wdIdx(sel));
@@ -220,10 +221,10 @@ function renderHabits() {
   const r = due.length ? done / due.length : 0, C = 2 * Math.PI * 28;
   $('h-progress').innerHTML = `<svg class="ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke="var(--line)"/>
     <circle cx="32" cy="32" r="28" stroke="var(--accent)" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - r)}" transform="rotate(-90 32 32)" style="transition:stroke-dashoffset .4s"/></svg>
-    <div><b>${done} / ${due.length}</b><div class="sub">${!due.length ? 'Nichts fällig' : done === due.length ? 'Alles erledigt 🔥' : 'erledigt'}</div></div>`;
+    <div><b>${done} / ${due.length}</b><div class="sub">${!due.length ? 'Nothing due' : done === due.length ? 'All done 🔥' : 'done'}</div></div>`;
 
   if (!active().length) {
-    $('h-list').innerHTML = `<div class="empty">Noch keine Habits.<br>Leg deinen ersten an, z.B. „Liegestütze“.<button class="btn" onclick="openEditor()">Ersten Habit anlegen</button></div>`;
+    $('h-list').innerHTML = `<div class="empty">No habits yet.<br>Add your first one, e.g. “Push-ups”.<button class="btn" onclick="openEditor()">Add first habit</button></div>`;
     return;
   }
   let html = '';
@@ -234,11 +235,11 @@ function renderHabits() {
       const s = streak(h);
       return `<div class="habit ${isDone(h, sel) ? 'done' : ''}" data-id="${h.id}">
         <div class="emo">${h.emoji}</div>
-        <div class="txt"><div class="nm">${esc(h.name)}</div><div class="meta">${s ? '🔥 ' + s + ' in Folge' : 'Noch keine Serie'}</div></div>
+        <div class="txt"><div class="nm">${esc(h.name)}</div><div class="meta">${s ? '🔥 ' + s + ' in a row' : 'No streak yet'}</div></div>
         <div class="check"></div></div>`;
     }).join('');
   }
-  if (!due.length) html = `<div class="empty">An diesem Tag ist nichts fällig.</div>`;
+  if (!due.length) html = `<div class="empty">Nothing due on this day.</div>`;
   $('h-list').innerHTML = html;
 }
 $('h-days').onclick = e => { const b = e.target.closest('.day'); if (!b) return; const [y, m, d] = b.dataset.d.split('-'); sel = new Date(y, m - 1, d); renderHabits(); };
@@ -260,7 +261,7 @@ $('h-add').onclick = () => openEditor();
 // ---------- Ansicht: Verlauf ----------
 function renderStats() {
   const hs = active();
-  if (!hs.length) { $('s-list').innerHTML = `<div class="empty">Noch keine Daten.</div>`; return; }
+  if (!hs.length) { $('s-list').innerHTML = `<div class="empty">No data yet.</div>`; return; }
   const t = today();
   $('s-list').innerHTML = hs.map(h => {
     let due = 0, done = 0, cells = '';
@@ -271,7 +272,7 @@ function renderStats() {
     }
     return `<div class="card"><div class="row" style="padding:0">
       <div class="emo" style="font-size:22px">${h.emoji}</div>
-      <div class="txt"><b>${esc(h.name)}</b><div class="sub">${due ? Math.round(done / due * 100) : 0}% · 🔥 ${streak(h)} · ${done}/${due} Tage</div></div></div>
+      <div class="txt"><b>${esc(h.name)}</b><div class="sub">${due ? Math.round(done / due * 100) : 0}% · 🔥 ${streak(h)} · ${done}/${due} days</div></div></div>
       <div class="heat">${cells}</div></div>`;
   }).join('');
 }
@@ -279,34 +280,34 @@ function renderStats() {
 // ---------- Ansicht: Einstellungen ----------
 async function renderSettings() {
   const st = $('st-storage');
-  let txt = 'Daten liegen nur auf diesem Gerät.';
+  let txt = 'Your data is stored only on this device.';
   if (navigator.storage && navigator.storage.persisted) {
     const p = await navigator.storage.persisted();
-    txt += p ? ' Speicher ist als dauerhaft markiert ✓' : ' Speicher nicht dauerhaft geschützt, ab und zu ein Backup machen.';
+    txt += p ? ' Storage is marked as persistent ✓' : ' Storage is not protected, make a backup now and then.';
   }
   const last = localStorage.getItem(KEY + '-backup');
-  if (last) txt += ' Letztes Backup: ' + new Date(last).toLocaleDateString('de-DE') + '.';
+  if (last) txt += ' Last backup: ' + new Date(last).toLocaleDateString('en-GB') + '.';
   st.textContent = txt;
   const all = S.habits;
   $('st-habits').innerHTML = all.length ? all.map(h => `<div class="row" data-id="${h.id}">
       <span style="font-size:20px">${h.emoji}</span>
-      <div class="txt">${esc(h.name)}${h.archived ? ' <span class="sub">(pausiert)</span>' : ''}<div class="sub">${SLOTS[h.slot]} · ${h.days.length === 7 ? 'täglich' : h.days.map(i => WD[i]).join(' ')}</div></div>
-      <button class="chip" data-edit="${h.id}">Bearbeiten</button></div>`).join('')
-    : '<div class="sub" style="margin-top:6px">Noch keine Habits.</div>';
+      <div class="txt">${esc(h.name)}${h.archived ? ' <span class="sub">(paused)</span>' : ''}<div class="sub">${SLOTS[h.slot]} · ${h.days.length === 7 ? 'daily' : h.days.map(i => WD[i]).join(' ')}</div></div>
+      <button class="chip" data-edit="${h.id}">Edit</button></div>`).join('')
+    : '<div class="sub" style="margin-top:6px">No habits yet.</div>';
 }
 $('st-habits').onclick = e => { const b = e.target.closest('[data-edit]'); if (b) openEditor(b.dataset.edit); };
 $('st-export').onclick = async () => {
   const name = `management-backup-${iso(today())}.json`;
   const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
   const file = new File([blob], name, { type: 'application/json' });
-  // Handy: Teilen-Menü (Dateien, Mail, Cloud); sonst normaler Download
+  // Phone: share sheet (Files, mail, cloud); otherwise a normal download
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try { await navigator.share({ files: [file], title: 'Management Backup' }); } catch (e) { if (e.name === 'AbortError') return; }
   } else {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
   localStorage.setItem(KEY + '-backup', new Date().toISOString());
-  renderSettings(); toast('Backup erstellt');
+  renderSettings(); toast('Backup saved');
 };
 $('st-import').onclick = () => $('st-file').click();
 $('st-file').onchange = async e => {
@@ -314,9 +315,9 @@ $('st-file').onchange = async e => {
   try {
     const d = JSON.parse(await f.text());
     if (!d.habits || !d.log) throw 0;
-    if (!confirm(`Backup mit ${d.habits.length} Habits laden? Aktuelle Daten werden ersetzt.`)) return;
-    S = d; save(); renderAll(); toast('Backup geladen');
-  } catch (err) { toast('Datei ist kein gültiges Backup'); }
+    if (!confirm(`Restore backup with ${d.habits.length} habits? Your current data will be replaced.`)) return;
+    S = d; save(); renderAll(); toast('Backup restored');
+  } catch (err) { toast('Not a valid backup file'); }
   e.target.value = '';
 };
 
@@ -326,17 +327,17 @@ function openEditor(id) {
   const draft = { ...h, days: [...h.days] };
   const sh = $('sheet');
   const draw = () => {
-    sh.innerHTML = `<h2>${id ? 'Habit bearbeiten' : 'Neuer Habit'}</h2>
-      <input id="e-name" placeholder="z.B. 20 Liegestütze" value="${esc(draft.name)}" maxlength="60" autocomplete="off">
-      <label class="l">Symbol</label>
+    sh.innerHTML = `<h2>${id ? 'Edit habit' : 'New habit'}</h2>
+      <input id="e-name" placeholder="e.g. 20 push-ups" value="${esc(draft.name)}" maxlength="60" autocomplete="off">
+      <label class="l">Icon</label>
       <div class="chips emojis">${EMOJIS.map(e => `<button class="chip ${e === draft.emoji ? 'on' : ''}" data-emo="${e}">${e}</button>`).join('')}</div>
-      <label class="l">Tageszeit</label>
+      <label class="l">Time of day</label>
       <div class="chips">${Object.entries(SLOTS).map(([k, v]) => `<button class="chip ${k === draft.slot ? 'on' : ''}" data-slot="${k}">${v}</button>`).join('')}</div>
-      <label class="l">Tage</label>
-      <div class="chips">${WD.map((w, i) => `<button class="chip ${draft.days.includes(i) ? 'on' : ''}" data-day="${i}">${w}</button>`).join('')}</div>
-      <button class="btn" id="e-save">Speichern</button>
-      ${id ? `<button class="btn ghost" id="e-arch">${h.archived ? 'Fortsetzen' : 'Pausieren'}</button><button class="btn danger" id="e-del">Löschen</button>` : ''}
-      <button class="btn ghost" id="e-cancel">Abbrechen</button>`;
+      <label class="l">Days</label>
+      <div class="chips daychips">${WD.map((w, i) => `<button class="chip ${draft.days.includes(i) ? 'on' : ''}" data-day="${i}">${w}</button>`).join('')}</div>
+      <button class="btn" id="e-save">Save</button>
+      ${id ? `<button class="btn ghost" id="e-arch">${h.archived ? 'Resume' : 'Pause'}</button><button class="btn danger" id="e-del">Delete</button>` : ''}
+      <button class="btn ghost" id="e-cancel">Cancel</button>`;
   };
   draw();
   sh.onclick = e => {
@@ -346,8 +347,8 @@ function openEditor(id) {
     else if (t.dataset.slot) { draft.slot = t.dataset.slot; draw(); }
     else if (t.dataset.day) { const i = +t.dataset.day; draft.days = draft.days.includes(i) ? draft.days.filter(x => x !== i) : [...draft.days, i].sort(); draw(); }
     else if (t.id === 'e-save') {
-      if (!draft.name.trim()) return toast('Bitte einen Namen eingeben');
-      if (!draft.days.length) return toast('Mindestens einen Tag wählen');
+      if (!draft.name.trim()) return toast('Please enter a name');
+      if (!draft.days.length) return toast('Pick at least one day');
       draft.name = draft.name.trim();
       if (id) Object.assign(h, draft);
       else S.habits.push({ ...draft, id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), created: iso(today()) });
@@ -355,7 +356,7 @@ function openEditor(id) {
     }
     else if (t.id === 'e-arch') { h.archived = !h.archived; save(); closeSheet(); renderAll(); }
     else if (t.id === 'e-del') {
-      if (!confirm(`„${h.name}“ mit allen Einträgen löschen?`)) return;
+      if (!confirm(`Delete “${h.name}” and all its entries?`)) return;
       S.habits = S.habits.filter(x => x.id !== id);
       for (const k in S.log) { S.log[k] = S.log[k].filter(x => x !== id); if (!S.log[k].length) delete S.log[k]; }
       save(); closeSheet(); renderAll();

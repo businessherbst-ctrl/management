@@ -1,7 +1,7 @@
 {
   "name": "Management",
   "short_name": "Management",
-  "description": "Persönliches Management: Habits und mehr",
+  "description": "Personal management: habits and more",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
